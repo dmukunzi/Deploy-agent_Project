@@ -113,3 +113,16 @@ if [ "$new_alert_thresholds" = "yes" ]; then
  echo "Attendance alert thresholds updated successfully."
 
 fi
+
+#Creating the Run Feature 
+
+read -r -p "Enter the deployed project name: " project_name
+project_dir="attendance_tracker_${project_name}"
+
+if [ ! -d "$project_dir" ]; then
+   echo "Failure: the deployed project folder does not exists."
+   exit 1
+fi 
+
+cd "$projecr_dir" || exit 1
+python3 attendance_checker.py
