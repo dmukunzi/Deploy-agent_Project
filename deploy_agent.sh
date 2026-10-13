@@ -126,3 +126,37 @@ fi
 
 cd "$projecr_dir" || exit 1
 python3 attendance_checker.py
+
+#Archive log files feature 
+ 
+read -r -p "Enter the name of the deployed project: " project_name
+project_dir="attendance_tracker_${project_name}"
+
+if [ ! -d "$project_dir" ]; then 
+   echo "Error: the deployed project folder was not found."
+   exit 1
+fi 
+
+timestamp=$(date +"%Y%m%d_%H%M%S")
+
+mkdir -p "$project_dir/archives/attendance"
+mkdir -p "$project_dir/archives/absent"
+
+if [ -f "$project_dir/reports/attendance.log" ]; then
+   archived_attendance_log="$project_dir/archives/attendance/attendance_${timestamp}.log"
+   cp "$project_dir/reports/attendance.log" "$archived_attendance_log"
+   echo" Attendance logs archived: $archived_attendance_log"
+
+else 
+   echo "No attendance log found, archive cancelled"
+fi 
+
+if [ -f "$project_dir/reports/absent.log"]; then 
+   archived_absent_log="$project_dir/archives/absent/absent_${timestamp}.log"
+   cp "$project_dir/reports/absent.log" "$archived_absent_log"
+   echo "Absent logs archived : $archived_absent_log"
+else
+   echo "No absent log found, archive cancelled"
+fi 
+
+
