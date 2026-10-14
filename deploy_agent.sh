@@ -12,7 +12,7 @@ deploy() {
 
  #Pre-flight checks
 
- if command -v python3; then 
+ if python3 --version; then 
     echo "Success: python3 is installed."
  else
     echo "Error: python3 is not installed."
@@ -65,14 +65,31 @@ trap handle_interruption SIGINT SIGTSTP
 
  read -r -p "Choose 1 or 2: " roster_choice
 
-if [ "$roster_choice" = "1" ]; then 
- read -r -p "How many students do you wish to copy?" student_number
+if [ "$roster_choice" = "1" ]; then
+
+ available=$(awk 'END {print NR - 1}' templates/assets.csv)
+ echo "The template roster has $available students."
+ 
+ read -r -p "How many students do you wish to copy (1-$available)? " student_number
+
+ while [[ ! "$student_number" =~ ^[1-9][0-9]*$ ]] || (( student_number > available )); do
+     read -r -p "Enter a whole number from 1 to $available: " student_number
+ done
 
  head -n $((student_number + 1)) templates/assets.csv > "$project_dir/Helpers/assets.csv"
 
-elif [ "$roster_choice"  = "2" ]; then 
+elif [ "$roster_choice"  = "2" ]; then
+ echo "Only 6 sample students are available to create."
+ 
+ while true; do 
+   read -r -p "How many students do you want to create(1-6)? " student_number
+  
+   if [[ "$student_number" =~ ^[1-6]$ ]]; then
+       break
+   fi
 
- read -r -p "How many students do you want to create" student_number
+   echo "Please enter an number between 1 and 6."
+ done
 
  names=("Mugisha Ambrose" "Rukiza Cedric" "Ndamukunda Hubert" "Guta Deborrah" "Akeza Ruth" "Mariza Sereine")
 
@@ -108,11 +125,18 @@ read -r -p " Do you want to update attendance alert thresholds? (yes/no): " new_
 
 if [ "$new_alert_thresholds" = "yes" ]; then
 
- read -r -p "Enter warning threshold (press Enter for 75): " warning 
- read -r -p "Enter failure threshold (press enter for 50): " failure 
+ while true; do
+   read -r -p "Enter warning threshold (press Enter for 75): " warning 
+   read -r -p "Enter failure threshold (press enter for 50): " failure 
 
- warning=${warning:-75}
- failure=${failure:-50}
+   warning=${warning:-75}
+   failure=${failure:-50}
+
+   if [[ "$warning" =~ ^[0-9]+$ && "$failure" =~ ^[0-9]+$ ]]; then
+       break
+   fi
+   echo "Threshold values must be whole numbers"
+ done
 
  sed -i.bak \
     -e "s/\"warning\": [0-9][0-9]*/\"warning\": $warning/" \
@@ -124,8 +148,9 @@ if [ "$new_alert_thresholds" = "yes" ]; then
  echo "Attendance alert thresholds updated successfully."
 
 fi
-echo "Deployment complete; choose option 2 to run it"
+echo "Deployment complete; starting the application for verification.."
 trap - SIGINT SIGTSTP
+run_project "$project_dir"
 }
 
 # Handle Ctrl+C and Ctrl+Z gracefully during deployment
