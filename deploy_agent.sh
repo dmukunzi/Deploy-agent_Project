@@ -48,6 +48,8 @@ deploy() {
 
 fi
 
+trap handle_interruption SIGINT SIGTSTP
+
  mkdir -p "$project_dir/Helpers"
  mkdir -p "$project_dir/reports"
 
@@ -87,6 +89,7 @@ elif [ "$roster_choice"  = "2" ]; then
 
 else
     echo "Invalid choice. Deployment cancelled."
+    trap - SIGINT SIGTSTP
     return 1
 
 fi 
@@ -122,8 +125,18 @@ if [ "$new_alert_thresholds" = "yes" ]; then
 
 fi
 echo "Deployment complete; choose option 2 to run it"
+trap - SIGINT SIGTSTP
 }
 
+# Handle Ctrl+C and Ctrl+Z gracefully during deployment
+handle_interruption() {
+    echo
+    echo "Deployment interrupted. Archiving..."
+    zip -rq "${project_dir}_archive.zip" "$project_dir"
+    rm -rf "$project_dir"
+    echo "Terminated session"
+    exit 1
+}
 #Run the deployed application(Feature2)
 
 run_app() {
