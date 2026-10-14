@@ -2,7 +2,7 @@
 
 set -u 
 #Run the python app from the deployed project folder
- run_projecr() {
+ run_project() {
      (cd "$1" && python3 attendance_checker.py)
  }
 
