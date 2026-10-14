@@ -1,14 +1,22 @@
 #!/bin/bash 
 
 set -u 
+#Run the python app from the deployed project folder
+ run_projecr() {
+     (cd "$1" && python3 attendance_checker.py)
+ }
 
-#Pre-flight checks
+# Deploy the application(Feature1)
+
+deploy() {
+
+ #Pre-flight checks
 
  if command -v python3; then 
     echo "Success: python3 is installed."
  else
     echo "Error: python3 is not installed."
-    exit 1
+    return 1
 
  fi 
 
@@ -16,7 +24,7 @@ set -u
     echo "Success: zip is installed."
  else 
     echo "Error: zip is not installed."
-    exit 1
+    return 1
  fi 
 
  echo "Pre-flight checks passed: python3 and zip are installed."
@@ -35,7 +43,7 @@ set -u
 
    else 
     echo "Overwrite cancelled."
-    exit 1
+    return 1
  fi
 
 fi
@@ -79,7 +87,7 @@ elif [ "$roster_choice"  = "2" ]; then
 
 else
     echo "Invalid choice. Deployment cancelled."
-    exit 1
+    return 1
 
 fi 
 
@@ -113,28 +121,32 @@ if [ "$new_alert_thresholds" = "yes" ]; then
  echo "Attendance alert thresholds updated successfully."
 
 fi
+echo "Deployment complete; choose option 2 to run it"
+}
 
-#Creating the Run Feature 
+#Run the deployed application(Feature2)
 
+run_app() {
 read -r -p "Enter the deployed project name: " project_name
 project_dir="attendance_tracker_${project_name}"
 
 if [ ! -d "$project_dir" ]; then
    echo "Failure: the deployed project folder does not exists."
-   exit 1
+   return 1
 fi 
 
-cd "$projecr_dir" || exit 1
-python3 attendance_checker.py
+run_project "$project_dir"
+}
 
 #Archive log files feature 
- 
+
+archive_logs() {
 read -r -p "Enter the name of the deployed project: " project_name
 project_dir="attendance_tracker_${project_name}"
 
 if [ ! -d "$project_dir" ]; then 
    echo "Error: the deployed project folder was not found."
-   exit 1
+   return 1
 fi 
 
 timestamp=$(date +"%Y%m%d_%H%M%S")
@@ -145,18 +157,39 @@ mkdir -p "$project_dir/archives/absent"
 if [ -f "$project_dir/reports/attendance.log" ]; then
    archived_attendance_log="$project_dir/archives/attendance/attendance_${timestamp}.log"
    cp "$project_dir/reports/attendance.log" "$archived_attendance_log"
-   echo" Attendance logs archived: $archived_attendance_log"
+   echo "Attendance logs archived: $archived_attendance_log"
 
 else 
    echo "No attendance log found, archive cancelled"
 fi 
 
-if [ -f "$project_dir/reports/absent.log"]; then 
+if [ -f "$project_dir/reports/absent.log" ]; then 
    archived_absent_log="$project_dir/archives/absent/absent_${timestamp}.log"
    cp "$project_dir/reports/absent.log" "$archived_absent_log"
    echo "Absent logs archived : $archived_absent_log"
 else
    echo "No absent log found, archive cancelled"
 fi 
+}
 
+#Main menu 
+
+while true; do 
+      echo 
+      echo "Student's Attendance Tracker"
+      echo "1) Deploy the application"
+      echo "2) Run the deployed application"
+      echo "3) Archive logs"
+      echo "4) Exit"
+
+      read -r -p "Choose an option: "  main_menu_option
+
+      case "$main_menu_option" in 
+           1) deploy ;;
+           2) run_app ;;
+           3) archive_logs ;;
+           4) echo "See you!"; break ;;
+           *) echo "Invalid choice. Please enter 1, 2, 3, or 4." ;;
+      esac
+done
 
