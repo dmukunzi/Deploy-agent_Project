@@ -96,3 +96,7 @@ After choosing option 1 in the menu, deploy builds a fresh, ready-to-use copy of
 - Hence this script listens for both signals(SIGINT AND SIGTSTP) from the moment it starts creating project folders until deployment is finished ensuring
   that when interrupted it does not crash the whole script but instead stops gracefully.
 - Furthemore, the interrupted partial folder project will packed into _archive.zip folder and will contain the information it had at the moment of interruption during deployment
+
+## Project Demo
+https://youtu.be/sS3RGxVFpOY?si=RyiFUXplc_9uIBp7
+
